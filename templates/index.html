@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rhea's Final Project</title>
+
+  <!-- Urbanist font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Urbanist', 'Helvetica Neue', Arial, sans-serif;
+      background-image: url('/Users/rheamanyala/Downloads/4ad5e97d526e07601c1a3e02fed6ea50.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+    }
+
+    h1 {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 4rem;
+      color: #ec667e;
+      margin: 0 0 30px;
+      text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    .upload-container {
+      border: 2px dashed #e8bfc4;
+      background: rgba(255, 250, 250, 0.9);
+      border-radius: 16px;
+      padding: 40px;
+      width: 320px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      color: #b85c74;
+      font-weight: 500;
+      backdrop-filter: saturate(180%) blur(10px);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .upload-container:hover {
+      border-color: #b85c74;
+      background: rgba(255, 238, 241, 0.95);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .sun-container {
+      width: 240px;
+      height: 240px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sun {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #e88c9b 0%, #fff5f7 70%);
+      box-shadow: 0 0 20px 6px rgba(232, 140, 155, 0.5);
+    }
+
+    .insta-post {
+      width: 320px;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(184, 92, 116, 0.15);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+    }
+
+    .profile-pic {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ffdce0;
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+
+    .username {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #b85c74;
+      font-family: 'Urbanist', sans-serif;
+    }
+
+    .post-image {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      background: #ffeef1;
+    }
+
+    .post-caption {
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: #444;
+      min-height: 1.4em;
+    }
+
+    .post-actions {
+      padding: 4px 16px 6px;
+      display: flex;
+      gap: 14px;
+      font-size: 1.2rem;
+      color: #b85c74;
+      border-top: 1px solid #eee;
+    }
+
+    .post-actions span:hover {
+      color: #e05277;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>桜</h1>
+
+  <!-- Instagram-style post -->
+  <div class="insta-post" id="instaPost">
+    <div class="post-header">
+      <div class="profile-pic"></div>
+      <div class="username">plant disease classifier</div>
+    </div>
+    <img id="postImage" class="post-image" alt="Uploaded image" />
+
+    <div class="post-caption" id="postCaption">
+      predicted class will appear here
+    </div>
+
+    <div class="post-actions">
+      <span title="Like" style="cursor: pointer;">💗</span>
+      <span title="Comment" style="cursor: pointer;">💬</span>
+      <span title="Share" style="cursor: pointer;">📤</span>
+    </div>
+  </div>
+
+  <!-- Orb -->
+  <div class="sun-container" id="sunContainer">
+    <div class="sun"></div>
+  </div>
+
+  <!-- Upload Box -->
+  <label class="upload-container" id="uploadBox" for="imageUpload">
+    Click or drag an image to upload
+    <input type="file" id="imageUpload" accept="image/*" />
+  </label>
+
+  <script>
+    const input       = document.getElementById('imageUpload');
+    const instaPost   = document.getElementById('instaPost');
+    const postImage   = document.getElementById('postImage');
+    const uploadBox   = document.getElementById('uploadBox');
+    const postCaption = document.getElementById('postCaption');
+
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.error) {
+          alert(data.error);
+          return;
+        }
+        // Show the uploaded image from the server URL
+        postImage.src = data.image_url;
+        postCaption.textContent = `Predicted class: ${data.predicted_class}`;
+        instaPost.style.display = 'flex';
+        uploadBox.style.display = 'none';
+      })
+      .catch(err => {
+        alert('Upload failed.');
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>
